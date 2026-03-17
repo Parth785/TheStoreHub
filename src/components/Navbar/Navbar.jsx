@@ -28,6 +28,9 @@ function Navbar() {
         <Link to="/cart" className="text-sm text-white/60 hover:text-white transition-colors">
           Cart ({getTotalItems()})
         </Link>
+        <Link to="/admin" className="text-sm text-white/60 hover:text-white transition-colors">
+          Admin
+        </Link>
         {isLoggedIn ? (
           <button
             onClick={logout}

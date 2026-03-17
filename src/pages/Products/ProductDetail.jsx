@@ -17,17 +17,17 @@ const SAMPLE_PRODUCTS = [
     stock: 10, 
     description: 'The most powerful MacBook Pro ever. Featuring M3 Pro or M3 Max chip, up to 18 hours battery life, and a stunning Liquid Retina XDR display.', 
     imageUrl: '💻',
-    modelUrl: '/models/ps4-stik.glb'
+    modelUrl: '/models/macbook.glb'
   },
   { 
     id: 2, 
-    name: 'iPhone 15 Pro', 
+    name: 'iPhone 17 Pro', 
     price: 1199, 
     category: 'Phones', 
     stock: 15, 
     description: 'Titanium design meets A17 Pro chip. The most advanced iPhone ever with a 48MP main camera and Action Button.', 
     imageUrl: '📱',
-    modelUrl: '/models/m60_machine_gun_-_vietnam_war.glb'
+    modelUrl: '/models/phone_17_pro_max.glb'
   },
   { 
     id: 3, 
@@ -41,12 +41,12 @@ const SAMPLE_PRODUCTS = [
   },
   { 
     id: 4, 
-    name: 'Apple Watch Ultra', 
+    name: 'Vintage Car Model', 
     price: 799, 
     category: 'Wearables', 
     stock: 8, 
     description: 'The most rugged and capable Apple Watch ever built. Designed for endurance athletes and adventurers.', 
-    imageUrl: '⌚',
+    imageUrl: '🚗',
     modelUrl: '/models/vaz-2105-1-.glb'
   },
   { 

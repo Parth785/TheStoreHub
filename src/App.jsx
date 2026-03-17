@@ -4,6 +4,10 @@ import Home from './pages/Home/Home.jsx'
 import Login from './pages/Auth/Login.jsx'
 import Products from './pages/Products/Products.jsx'
 import ProductDetail from './pages/Products/ProductDetail.jsx'
+import Cart from './pages/Cart/Cart.jsx'
+import Orders from './pages/Orders/Orders.jsx'
+import Profile from './pages/Profile/Profile.jsx'
+import Admin from './pages/Admin/Admin.jsx'
 
 function App() {
   return (
@@ -13,10 +17,11 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/products/:id" element={<ProductDetail />} />
-        <Route path="/cart" element={<div className="text-center pt-32 text-2xl">Cart</div>} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/orders" element={<div className="text-center pt-32 text-2xl">Orders</div>} />
-        <Route path="/profile" element={<div className="text-center pt-32 text-2xl">Profile</div>} />
+        <Route path="/orders" element={<Orders />} />
+        <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<Admin />} />
       </Routes>
     </div>
   )

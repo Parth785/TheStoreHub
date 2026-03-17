@@ -17,17 +17,17 @@ const SAMPLE_PRODUCTS = [
         stock: 10, 
         description: 'The most powerful MacBook Pro ever.', 
         imageUrl: '💻',
-        modelUrl: '/models/ps4-stik.glb'  // just for testing
+        modelUrl: '/models/macbook.glb'  // just for testing
     },
     { 
       id: 2, 
-      name: 'iPhone 15 Pro', 
+      name: 'iPhone 17 Pro', 
       price: 1199, 
       category: 'Phones', 
       stock: 15, 
       description: 'Titanium design meets A17 Pro chip...', 
       imageUrl: '📱',
-      modelUrl: '/models/iphone.glb'  // ← add this
+      modelUrl: '/models/phone_17_pro_max.glb'  // ← add this
     },
     { 
       id: 3, 
@@ -41,12 +41,12 @@ const SAMPLE_PRODUCTS = [
     },
     { 
       id: 4, 
-      name: 'Apple Watch Ultra', 
+      name: 'Vintage Car Model', 
       price: 799, 
       category: 'Wearables', 
       stock: 8, 
       description: 'The most rugged Apple Watch ever...', 
-      imageUrl: '⌚',
+      imageUrl: '🚗',
       modelUrl: '/models/watch.glb'
     },
     { 

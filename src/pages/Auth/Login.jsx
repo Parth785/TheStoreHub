@@ -69,9 +69,9 @@ function Login() {
         transition={{ duration: 0.6 }}>
 
         {/* Logo */}
-        <Link to="/" className="block text-center text-2xl font-medium mb-8">
-          arc<span className="text-purple-400">.</span>store
-        </Link>
+        {/* <Link to="/" className="block text-center text-2xl font-medium mb-8">
+          Store<span className="text-purple-400">Hub</span>
+        </Link> */}
 
         {/* Card */}
         <div className="bg-white/5 border border-white/10 rounded-2xl p-8">
