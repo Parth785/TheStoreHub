@@ -16,7 +16,7 @@ const SAMPLE_PRODUCTS = [
         category: 'Laptops', 
         stock: 10, 
         description: 'The most powerful MacBook Pro ever.', 
-        imageUrl: '💻',
+        imageUrl: '/images/mb2.jpeg',
         modelUrl: '/models/macbook.glb'  // just for testing
     },
     { 
@@ -26,7 +26,7 @@ const SAMPLE_PRODUCTS = [
       category: 'Phones', 
       stock: 15, 
       description: 'Titanium design meets A17 Pro chip...', 
-      imageUrl: '📱',
+      imageUrl: '/images/iphone-17.png',
       modelUrl: '/models/phone_17_pro_max.glb'  // ← add this
     },
     { 
@@ -66,7 +66,7 @@ const SAMPLE_PRODUCTS = [
       category: 'Audio', 
       stock: 25, 
       description: 'Active Noise Cancellation...', 
-      imageUrl: '🎵',
+      imageUrl: '/images/airpods_pro.jpeg',
       modelUrl: '/models/airpods.glb'
     },
   ]
@@ -259,9 +259,20 @@ function Products() {
             onClick={() => navigate(`/products/${product.id}`)}>
 
             {/* Product image / emoji */}
-            <div className="h-48 flex items-center justify-center bg-white/3 text-7xl group-hover:scale-110 transition-transform duration-300">
-              {product.imageUrl}
-            </div>
+                  <div className="h-48 overflow-hidden bg-white/3 relative">
+          <img
+            src={product.imageUrl}
+            alt={product.name}
+            className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+            onError={(e) => {
+              e.target.style.display = 'none'
+              e.target.nextSibling.style.display = 'flex'
+            }}
+          />
+          <div className="absolute inset-0 items-center justify-center text-5xl hidden">
+            📦
+          </div>
+        </div>
 
             {/* Product info */}
             <div className="p-4">
