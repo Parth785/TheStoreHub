@@ -1,0 +1,46 @@
+import axios from 'axios'
+
+const api = axios.create({
+  baseURL: 'http://localhost:8080',
+})
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
+    return Promise.reject(error)
+  }
+)
+
+export const authAPI = {
+  register: (data) => api.post('/users/register', data),
+  login: (data) => api.post('/users/login', data),
+  getProfile: (id) => api.get(`/users/${id}`),
+}
+
+export const productAPI = {
+  getAll: () => api.get('/products'),
+  getById: (id) => api.get(`/products/${id}`),
+  search: (name) => api.get(`/products/search?name=${name}`),
+  getByCategory: (cat) => api.get(`/products/category/${cat}`),
+}
+
+export const orderAPI = {
+  create: (data) => api.post('/orders', data),
+  getMyOrders: () => api.get('/orders/user'),
+  getById: (id) => api.get(`/orders/${id}`),
+  updateStatus: (id, status) => api.put(`/orders/${id}/status?status=${status}`),
+}
+
+export default api
