@@ -27,7 +27,7 @@ const SAMPLE_PRODUCTS = [
     stock: 15, 
     description: 'Titanium design meets A17 Pro chip. The most advanced iPhone ever with a 48MP main camera and Action Button.', 
     imageUrl: '📱',
-    modelUrl: null
+    modelUrl: '/models/m60_machine_gun_-_vietnam_war.glb'
   },
   { 
     id: 3, 
@@ -37,7 +37,7 @@ const SAMPLE_PRODUCTS = [
     stock: 20, 
     description: 'Industry-leading noise cancellation with two processors and eight microphones. 30-hour battery life with quick charge.', 
     imageUrl: '🎧',
-    modelUrl: null
+    modelUrl: '/models/wolvic_3d_model.glb'
   },
   { 
     id: 4, 
@@ -47,7 +47,7 @@ const SAMPLE_PRODUCTS = [
     stock: 8, 
     description: 'The most rugged and capable Apple Watch ever built. Designed for endurance athletes and adventurers.', 
     imageUrl: '⌚',
-    modelUrl: null
+    modelUrl: '/models/vaz-2105-1-.glb'
   },
   { 
     id: 5, 
