@@ -1,9 +1,13 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import useAuthStore from '../../store/useAuthStore'
+
 
 function Home() {
   const navigate = useNavigate()
+  const { isLoggedIn } = useAuthStore()
+
 
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden">
@@ -55,11 +59,13 @@ function Home() {
             className="bg-white text-black px-8 py-3 rounded-full text-sm font-medium hover:bg-white/90 transition-all hover:scale-105">
             Explore now
           </button>
+          {!isLoggedIn && (
           <button
             onClick={() => navigate('/login')}
             className="border border-white/20 text-white px-8 py-3 rounded-full text-sm hover:border-white/50 transition-all">
             Sign in
           </button>
+        )}
         </motion.div>
 
         {/* Scroll hint */}

@@ -41,14 +41,16 @@ function Profile() {
   useEffect(() => {
     if (user?.id) {
       authAPI.getProfile(user.id)
-        .then(res => setProfile(res.data))
+        .then(res => {
+          setProfile(res.data)
+        })
         .catch(() => setProfile(SAMPLE_USER))
     }
-
+  
     orderAPI.getMyOrders()
       .then(res => setOrders(res.data))
       .catch(() => setOrders(SAMPLE_ORDERS))
-  }, [])
+  }, [user])
 
   const handleLogout = () => {
     logout()

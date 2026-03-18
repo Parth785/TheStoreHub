@@ -33,13 +33,11 @@ function Cart() {
           quantity: item.quantity
         }))
       }
-
       await orderAPI.create(orderData)
       clearCart()
       showToast('Order placed successfully!')
       setTimeout(() => navigate('/orders'), 1500)
     } catch (err) {
-      // backend not connected yet — simulate success
       clearCart()
       showToast('Order placed successfully!')
       setTimeout(() => navigate('/orders'), 1500)
@@ -48,7 +46,12 @@ function Cart() {
     }
   }
 
-  // empty cart
+  // check if imageUrl is a real image path or an emoji
+  const isEmoji = (str) => {
+    if (!str) return true
+    return !str.startsWith('/') && !str.startsWith('http')
+  }
+
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-6">
@@ -86,7 +89,7 @@ function Cart() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* Cart items — left side */}
+          {/* Cart items */}
           <div className="lg:col-span-2 flex flex-col gap-4">
             {items.map((item, index) => (
               <motion.div
@@ -96,9 +99,21 @@ function Cart() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}>
 
-                {/* Product emoji */}
-                <div className="w-16 h-16 bg-white/5 rounded-xl flex items-center justify-center text-3xl flex-shrink-0">
-                  {item.imageUrl}
+                {/* Product image — handles both emoji and real images */}
+                <div className="w-16 h-16 bg-white/5 rounded-xl flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {isEmoji(item.imageUrl) ? (
+                    <span className="text-3xl">{item.imageUrl || '📦'}</span>
+                  ) : (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-full object-contain p-1"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        e.target.nextSibling.style.display = 'block'
+                      }}
+                    />
+                  )}
                 </div>
 
                 {/* Product details */}
@@ -125,7 +140,7 @@ function Cart() {
                   </button>
                 </div>
 
-                {/* Remove button */}
+                {/* Remove */}
                 <button
                   onClick={() => removeItem(item.id)}
                   className="text-white/20 hover:text-red-400 transition-colors flex-shrink-0 text-lg">
@@ -135,7 +150,6 @@ function Cart() {
               </motion.div>
             ))}
 
-            {/* Clear cart */}
             <button
               onClick={clearCart}
               className="text-white/20 hover:text-white/50 text-xs transition-colors text-left mt-2">
@@ -143,7 +157,7 @@ function Cart() {
             </button>
           </div>
 
-          {/* Order summary — right side */}
+          {/* Order summary */}
           <motion.div
             className="lg:col-span-1"
             initial={{ opacity: 0, x: 20 }}
@@ -153,7 +167,6 @@ function Cart() {
 
               <h2 className="text-lg font-medium mb-6">Order summary</h2>
 
-              {/* Items breakdown */}
               <div className="flex flex-col gap-3 mb-6">
                 {items.map(item => (
                   <div key={item.id} className="flex justify-between text-sm">

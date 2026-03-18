@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080',
+  baseURL: 'http://localhost:8084',
 })
 
 api.interceptors.request.use((config) => {
@@ -24,7 +24,7 @@ api.interceptors.response.use(
 )
 
 export const authAPI = {
-  register: (data) => api.post('/users/register', data),
+  register: (data) => api.post('/users', data),
   login: (data) => api.post('/users/login', data),
   getProfile: (id) => api.get(`/users/${id}`),
 }

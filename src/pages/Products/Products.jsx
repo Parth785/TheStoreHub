@@ -16,7 +16,7 @@ const SAMPLE_PRODUCTS = [
         category: 'Laptops', 
         stock: 10, 
         description: 'The most powerful MacBook Pro ever.', 
-        imageUrl: '/images/mb2.jpeg',
+        imageUrl: '/images/macB.png',
         modelUrl: '/models/macbook.glb'  // just for testing
     },
     { 
@@ -26,7 +26,7 @@ const SAMPLE_PRODUCTS = [
       category: 'Phones', 
       stock: 15, 
       description: 'Titanium design meets A17 Pro chip...', 
-      imageUrl: '/images/iphone-17.png',
+      imageUrl: '/images/17pro.png',
       modelUrl: '/models/phone_17_pro_max.glb'  // ← add this
     },
     { 
@@ -98,8 +98,16 @@ function Products() {
   // fetch from backend when connected
   useEffect(() => {
     productAPI.getAll()
-      .then(res => setProducts(res.data))
-      .catch(() => setProducts(SAMPLE_PRODUCTS)) // fallback to sample
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          setProducts(res.data)
+        } else {
+          setProducts(SAMPLE_PRODUCTS)
+        }
+      })
+      .catch(() => {
+        setProducts(SAMPLE_PRODUCTS)
+      })
   }, [])
 
   // search suggestions with debounce
