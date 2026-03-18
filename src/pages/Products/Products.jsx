@@ -31,12 +31,12 @@ const SAMPLE_PRODUCTS = [
     },
     { 
       id: 3, 
-      name: 'Sony WH-1000XM5', 
+      name: 'Boat Wireless Headphones', 
       price: 349, 
       category: 'Audio', 
       stock: 20, 
       description: 'Industry leading noise cancellation...', 
-      imageUrl: '🎧',
+      imageUrl: '/images/Headphones.png',
       modelUrl: '/models/headphones.glb'
     },
     { 
@@ -46,7 +46,7 @@ const SAMPLE_PRODUCTS = [
       category: 'Wearables', 
       stock: 8, 
       description: 'The most rugged Apple Watch ever...', 
-      imageUrl: '🚗',
+      imageUrl: '/images/car.png',
       modelUrl: '/models/watch.glb'
     },
     { 
@@ -56,7 +56,7 @@ const SAMPLE_PRODUCTS = [
       category: 'Tablets', 
       stock: 12, 
       description: 'Supercharged by M2 chip...', 
-      imageUrl: '📟',
+      imageUrl: '/images/ipad-pro.png',
       modelUrl: '/models/tablet.glb'
     },
     { 
@@ -66,7 +66,7 @@ const SAMPLE_PRODUCTS = [
       category: 'Audio', 
       stock: 25, 
       description: 'Active Noise Cancellation...', 
-      imageUrl: '/images/airpods_pro.jpeg',
+      imageUrl: '/images/apPro.png',
       modelUrl: '/models/airpods.glb'
     },
   ]
@@ -77,7 +77,7 @@ const SUGGESTIONS = [
   { name: 'MacBook Pro 16', available: true },
   { name: 'iPhone 15 Pro', available: true },
   { name: 'Google Pixel 8', available: false },
-  { name: 'Sony WH-1000XM5', available: true },
+  { name: 'Boat Wireless Headphones', available: true },
 ]
 
 function Products() {

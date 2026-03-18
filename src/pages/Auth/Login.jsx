@@ -74,7 +74,7 @@ function Login() {
               password: form.password,
             })
             login(res.data)
-            showToast('Welcome to arc.store!')
+            showToast('Welcome to The Store Hub!')
             setTimeout(() => navigate('/'), 1000)
           } catch {
             showToast('Registered! Please sign in.', 'success')
@@ -116,7 +116,7 @@ function Login() {
         transition={{ duration: 0.6 }}>
 
         <Link to="/" className="block text-center text-2xl font-medium mb-8 text-white">
-          arc<span className="text-purple-400">.</span>store
+          Store<span className="text-purple-400">Hub</span>
         </Link>
 
         <motion.div

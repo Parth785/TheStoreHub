@@ -15,7 +15,7 @@ function Navbar() {
   return (
     <nav className="fixed top-0 w-full z-50 flex items-center justify-between px-8 py-4 bg-black/80 backdrop-blur-md border-b border-white/10">
       <Link to="/" className="text-xl font-medium tracking-tight text-white">
-        arc<span className="text-purple-400">.</span>store
+        Store<span className="text-purple-400">Hub</span>
       </Link>
 
       <div className="flex items-center gap-6">
