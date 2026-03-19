@@ -4,7 +4,7 @@ import useCartStore from '../../store/useCartStore'
 
 function Navbar() {
   const { isLoggedIn, logout } = useAuthStore()
-  const getTotalItems = useCartStore(state => state.getTotalItems)
+  const totalItems = useCartStore(state => state.getTotalItems())
   const navigate = useNavigate()
 
   const handleLogout = () => {
@@ -36,7 +36,7 @@ function Navbar() {
         )}
 
         <Link to="/cart" className="text-sm text-white/60 hover:text-white transition-colors">
-          Cart ({getTotalItems()})
+          Cart ({totalItems})
         </Link>
 
         {isLoggedIn && (

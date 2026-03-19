@@ -37,7 +37,7 @@ const SAMPLE_PRODUCTS = [
       stock: 20, 
       description: 'Industry leading noise cancellation...', 
       imageUrl: '/images/Headphones.png',
-      modelUrl: '/models/headphones.glb'
+      modelUrl: '/models/boat_rockerz_510_headphone_3d_model.glb'
     },
     { 
       id: 4, 
@@ -57,7 +57,7 @@ const SAMPLE_PRODUCTS = [
       stock: 12, 
       description: 'Supercharged by M2 chip...', 
       imageUrl: '/images/ipad-pro.png',
-      modelUrl: '/models/tablet.glb'
+      modelUrl: '/models/apple_ipad_pro.glbb'
     },
     { 
       id: 6, 
@@ -67,7 +67,7 @@ const SAMPLE_PRODUCTS = [
       stock: 25, 
       description: 'Active Noise Cancellation...', 
       imageUrl: '/images/apPro.png',
-      modelUrl: '/models/airpods.glb'
+      modelUrl: '/models/airpods_pro_with_magsafe_charging_case_ios15.glb'
     },
   ]
 

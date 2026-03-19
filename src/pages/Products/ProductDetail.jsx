@@ -31,13 +31,13 @@ const SAMPLE_PRODUCTS = [
   },
   { 
     id: 3, 
-    name: 'Sony WH-1000XM5', 
+    name: 'Boat Wireless Headphones', 
     price: 349, 
     category: 'Audio', 
     stock: 20, 
     description: 'Industry-leading noise cancellation with two processors and eight microphones. 30-hour battery life with quick charge.', 
     imageUrl: '🎧',
-    modelUrl: '/models/wolvic_3d_model.glb'
+    modelUrl: '/models/boat_rockerz_510_headphone_3d_model.glb'
   },
   { 
     id: 4, 
@@ -57,7 +57,7 @@ const SAMPLE_PRODUCTS = [
     stock: 12, 
     description: 'Supercharged by M2 chip. With Apple Pencil hover, Wi-Fi 6E, and ProMotion display up to 120Hz.', 
     imageUrl: '📟',
-    modelUrl: null
+    modelUrl: '/models/apple_ipad_pro.glb'
   },
   { 
     id: 6, 
@@ -67,7 +67,7 @@ const SAMPLE_PRODUCTS = [
     stock: 25, 
     description: 'Active Noise Cancellation, Transparency mode, Personalized Spatial Audio with dynamic head tracking.', 
     imageUrl: '🎵',
-    modelUrl: null
+    modelUrl: '/models/airpods_pro_with_magsafe_charging_case_ios15.glb'
   },
 ]
 // Preload models so they are ready when user clicks
