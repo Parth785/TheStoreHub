@@ -1,4 +1,3 @@
-import { useState, useEffect, Suspense } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Canvas } from '@react-three/fiber'
@@ -7,6 +6,38 @@ import { productAPI } from '../../services/api'
 import useCartStore from '../../store/useCartStore'
 import useAuthStore from '../../store/useAuthStore'
 import * as THREE from 'three'
+import React, { useState, useEffect, Suspense } from 'react'
+
+
+// Error boundary catches Three.js crashes
+class ModelErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+          <img
+            src={this.props.imageUrl}
+            alt={this.props.name}
+            className="w-48 h-48 object-contain"
+          />
+          <p className="text-white/30 text-xs tracking-widest uppercase">
+            3D model unavailable
+          </p>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 
 const SAMPLE_PRODUCTS = [
   { 
@@ -75,6 +106,30 @@ SAMPLE_PRODUCTS.forEach(p => {
   if (p.modelUrl) useGLTF.preload(p.modelUrl)
 })
 
+function ModelWithFallback({ url, onError }) {
+  const { scene } = useGLTF(url)
+
+  useEffect(() => {
+    if (!scene) {
+      onError()
+      return
+    }
+    try {
+      const box = new THREE.Box3().setFromObject(scene)
+      const center = box.getCenter(new THREE.Vector3())
+      const size = box.getSize(new THREE.Vector3())
+      const maxDim = Math.max(size.x, size.y, size.z)
+      const scale = 3 / maxDim
+      scene.scale.setScalar(scale)
+      scene.position.sub(center.multiplyScalar(scale))
+    } catch (e) {
+      onError()
+    }
+  }, [scene])
+
+  return <primitive object={scene} />
+}
+
 function Model({ url }) {
   const { scene } = useGLTF(url)
 
@@ -92,15 +147,34 @@ function Model({ url }) {
 }
 
 function ModelViewer({ modelUrl }) {
+  const [hasError, setHasError] = useState(false)
+
+  if (hasError) {
+    return (
+      <div className="w-full h-full flex flex-col items-center justify-center gap-3">
+        <p className="text-4xl">📦</p>
+        <p className="text-white/30 text-xs tracking-widest uppercase">
+          3D model unavailable
+        </p>
+      </div>
+    )
+  }
+
   return (
     <Canvas
       camera={{ position: [0, 2, 8], fov: 50 }}
-      style={{ width: '100%', height: '100%' }}>
+      style={{ width: '100%', height: '100%' }}
+      onError={() => setHasError(true)}>
       <ambientLight intensity={2} />
       <directionalLight position={[10, 10, 5]} intensity={2} />
       <directionalLight position={[-10, -10, -5]} intensity={1} />
-      <Suspense fallback={null}>
-        <Model url={modelUrl} />
+      <Suspense fallback={
+        <mesh>
+          <boxGeometry args={[1, 1, 1]} />
+          <meshStandardMaterial color="#534AB7" wireframe />
+        </mesh>
+      }>
+        <ModelWithFallback url={modelUrl} onError={() => setHasError(true)} />
       </Suspense>
       <OrbitControls
         enableZoom={true}
@@ -237,10 +311,12 @@ function ProductDetail() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}>
         {hasModel ? (
+        <ModelErrorBoundary imageUrl={product.imageUrl} name={product.name}>
           <ModelViewer key={product.modelUrl} modelUrl={product.modelUrl} />
-        ) : (
-          <EmojiViewer emoji={product.imageUrl} />
-        )}
+        </ModelErrorBoundary>
+      ) : (
+        <ImageViewer imageUrl={product.imageUrl} name={product.name} />
+      )}
         </motion.div>
         <motion.div
           className="flex flex-col justify-center"
