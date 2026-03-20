@@ -34,13 +34,14 @@ function Cart() {
         }))
       }
       await orderAPI.create(orderData)
-      clearCart()
       showToast('Order placed successfully!')
-      setTimeout(() => navigate('/orders'), 1500)
+      // navigate first then clear cart
+      navigate('/orders')
+      clearCart()
     } catch (err) {
-      clearCart()
       showToast('Order placed successfully!')
-      setTimeout(() => navigate('/orders'), 1500)
+      navigate('/orders')
+      clearCart()
     } finally {
       setLoading(false)
     }
