@@ -4,34 +4,33 @@ import { motion } from 'framer-motion'
 import { orderAPI } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
 
-// Sample orders to show when backend is not connected
 const SAMPLE_ORDERS = [
   {
-    id: 1,
+    orderId: 1,
     createdAt: '2026-03-10T10:30:00',
     status: 'DELIVERED',
     totalPrice: 2499,
     items: [
-      { productId: 1, name: 'MacBook Pro 16', quantity: 1, price: 2499 }
+      { productId: 1, quantity: 1, price: 2499 }
     ]
   },
   {
-    id: 2,
+    orderId: 2,
     createdAt: '2026-03-14T14:20:00',
     status: 'SHIPPED',
     totalPrice: 1548,
     items: [
-      { productId: 2, name: 'iPhone 15 Pro', quantity: 1, price: 1199 },
-      { productId: 6, name: 'AirPods Pro', quantity: 1, price: 349 }
+      { productId: 2, quantity: 1, price: 1199 },
+      { productId: 6, quantity: 1, price: 349 }
     ]
   },
   {
-    id: 3,
+    orderId: 3,
     createdAt: '2026-03-17T09:00:00',
     status: 'PENDING',
     totalPrice: 349,
     items: [
-      { productId: 3, name: 'Sony WH-1000XM5', quantity: 1, price: 349 }
+      { productId: 3, quantity: 1, price: 349 }
     ]
   },
 ]
@@ -52,8 +51,6 @@ function StatusTracker({ status }) {
     <div className="flex items-center gap-0 mt-4">
       {STATUS_STEPS.map((step, index) => (
         <div key={step} className="flex items-center flex-1">
-
-          {/* Circle */}
           <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-medium flex-shrink-0 border transition-all ${
             index <= currentStep
               ? 'bg-purple-500 border-purple-500 text-white'
@@ -61,14 +58,11 @@ function StatusTracker({ status }) {
           }`}>
             {index < currentStep ? '✓' : index + 1}
           </div>
-
-          {/* Line */}
           {index < STATUS_STEPS.length - 1 && (
             <div className={`h-[1px] flex-1 transition-all ${
               index < currentStep ? 'bg-purple-500' : 'bg-white/10'
             }`} />
           )}
-
         </div>
       ))}
     </div>
@@ -101,6 +95,7 @@ function Orders() {
   }, [isLoggedIn])
 
   const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A'
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -139,7 +134,6 @@ function Orders() {
 
       <div className="max-w-3xl mx-auto">
 
-        {/* Header */}
         <motion.div
           className="mb-10"
           initial={{ opacity: 0, y: 20 }}
@@ -151,11 +145,10 @@ function Orders() {
           <h1 className="text-4xl md:text-5xl font-medium">Order history</h1>
         </motion.div>
 
-        {/* Orders list */}
         <div className="flex flex-col gap-4">
           {orders.map((order, index) => (
             <motion.div
-              key={order.id}
+              key={order.orderId}
               className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -165,29 +158,29 @@ function Orders() {
               <div
                 className="p-5 flex items-center justify-between cursor-pointer hover:bg-white/3 transition-colors"
                 onClick={() => setExpandedOrder(
-                  expandedOrder === order.id ? null : order.id
+                  expandedOrder === order.orderId ? null : order.orderId
                 )}>
 
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-white">
-                      Order #{order.id}
+                      Order #{order.orderId}
                     </span>
-                    <span className={`text-xs px-2 py-1 rounded-full border ${STATUS_COLORS[order.status]}`}>
+                    <span className={`text-xs px-2 py-1 rounded-full border ${STATUS_COLORS[order.status] || ''}`}>
                       {order.status}
                     </span>
                   </div>
                   <span className="text-xs text-white/30">
-                    {formatDate(order.createdAt)} · {order.items.length} item{order.items.length > 1 ? 's' : ''}
+                    {formatDate(order.createdAt)} · {order.items?.length || 0} item{order.items?.length !== 1 ? 's' : ''}
                   </span>
                 </div>
 
                 <div className="flex items-center gap-4">
                   <span className="text-purple-400 font-medium">
-                    ${order.totalPrice.toLocaleString()}
+                    ${order.totalPrice?.toLocaleString()}
                   </span>
                   <span className={`text-white/30 text-sm transition-transform duration-200 ${
-                    expandedOrder === order.id ? 'rotate-180' : ''
+                    expandedOrder === order.orderId ? 'rotate-180' : ''
                   }`}>
                     ↓
                   </span>
@@ -195,12 +188,12 @@ function Orders() {
 
               </div>
 
-              {/* Expanded order details */}
-              {expandedOrder === order.id && (
+              {/* Expanded details */}
+              {expandedOrder === order.orderId && (
                 <motion.div
                   className="border-t border-white/10 p-5"
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.3 }}>
 
                   {/* Status tracker */}
@@ -224,12 +217,12 @@ function Orders() {
                       Items
                     </p>
                     <div className="flex flex-col gap-2">
-                      {order.items.map((item, i) => (
+                      {order.items?.map((item, i) => (
                         <div
                           key={i}
                           className="flex justify-between items-center text-sm py-2 border-b border-white/5 last:border-0">
                           <span className="text-white/70">
-                            {item.name} × {item.quantity}
+                            Product #{item.productId} × {item.quantity}
                           </span>
                           <span className="text-white/50">
                             ${(item.price * item.quantity).toLocaleString()}
@@ -243,7 +236,7 @@ function Orders() {
                   <div className="flex justify-between items-center mt-4 pt-4 border-t border-white/10">
                     <span className="text-sm text-white/50">Total</span>
                     <span className="text-purple-400 font-medium">
-                      ${order.totalPrice.toLocaleString()}
+                      ${order.totalPrice?.toLocaleString()}
                     </span>
                   </div>
 
