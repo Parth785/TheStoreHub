@@ -1,9 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
 import { productAPI } from '../../services/api'
 import useCartStore from '../../store/useCartStore'
 import useAuthStore from '../../store/useAuthStore'
+import { motion, AnimatePresence } from 'framer-motion'
+
+
 
 const SUGGESTIONS = [
   { name: 'Samsung Galaxy S24', available: false },
@@ -29,6 +31,7 @@ function Products() {
   const [unavailableProduct, setUnavailableProduct] = useState(null)
   const [toast, setToast] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
+  const [searchLoading, setSearchLoading] = useState(false)
 
   const pageRef = useRef(0)
   const loadingRef = useRef(false)
@@ -38,38 +41,41 @@ function Products() {
   const categories = ['All', 'Laptops', 'Phones', 'Audio', 'Wearables', 'Tablets', 'Collectibles']
 
   const loadProducts = useCallback(async (pageNum, reset = false) => {
-    if (loadingRef.current) return
-    loadingRef.current = true
-  
-    try {
-      if (pageNum === 0) setInitialLoading(true)
-      else setLoadingMore(true)
-  
-      const res = await productAPI.getAll(pageNum, 20)
-      const data = res.data
-      const newProducts = data.content || (Array.isArray(data) ? data : [])
-  
-      if (reset) {
-        setProducts(newProducts)
-      } else {
-        setProducts(prev => [...prev, ...newProducts])
-      }
-  
-      if (data.totalPages !== undefined) {
-        setHasMore(pageNum < data.totalPages - 1)
-      } else {
-        setHasMore(false)
-      }
-  
-    } catch (err) {
-      console.error('Failed:', err)
-      setHasMore(false)
-    } finally {
-      setInitialLoading(false)
-      setLoadingMore(false)
-      loadingRef.current = false
+  if (loadingRef.current) return
+  loadingRef.current = true
+
+  try {
+    if (pageNum === 0 && products.length === 0) {
+      setInitialLoading(true)
+    } else if (pageNum > 0) {
+      setLoadingMore(true)
     }
-  }, [])
+
+    const res = await productAPI.getAll(pageNum, 20)
+    const data = res.data
+    const newProducts = data.content || (Array.isArray(data) ? data : [])
+
+    if (reset) {
+      setProducts(newProducts)
+    } else {
+      setProducts(prev => [...prev, ...newProducts])
+    }
+
+    if (data.totalPages !== undefined) {
+      setHasMore(pageNum < data.totalPages - 1)
+    } else {
+      setHasMore(false)
+    }
+
+  } catch (err) {
+    console.error('Failed:', err)
+    setHasMore(false)
+  } finally {
+    setInitialLoading(false)
+    setLoadingMore(false)
+    loadingRef.current = false
+  }
+}, [products.length])
 
   // load first page on mount
   useEffect(() => {
@@ -102,33 +108,22 @@ function Products() {
 
   // suggestion debounce
   useEffect(() => {
-    if (!search.trim()) {
-      setSuggestions([])
-      setShowSuggestions(false)
-      return
-    }
-    const timeout = setTimeout(() => {
-      const matched = SUGGESTIONS.filter(s =>
-        s.name.toLowerCase().includes(search.toLowerCase())
-      )
-      setSuggestions(matched)
-      setShowSuggestions(true)
-    }, 300)
-    return () => clearTimeout(timeout)
-  }, [search])
-
-  // search from backend
-  useEffect(() => {
-    if (!search.trim()) {
-      pageRef.current = 0
-      setHasMore(true)
-      loadProducts(0, true)
-      return
-    }
-
     const timeout = setTimeout(async () => {
       try {
-        setInitialLoading(true)
+        setSearchLoading(true)
+  
+        if (!search.trim()) {
+          // clear search — reload all products quietly
+          pageRef.current = 0
+          const res = await productAPI.getAll(0, 20)
+          const data = res.data
+          setProducts(data.content || [])
+          setHasMore(true)
+          setSearchLoading(false)
+          return
+        }
+  
+        // search
         const res = await productAPI.search(search, 0, 20)
         const data = res.data
         setProducts(data.content || [])
@@ -136,10 +131,10 @@ function Products() {
       } catch {
         setProducts([])
       } finally {
-        setInitialLoading(false)
+        setSearchLoading(false)
       }
-    }, 500)
-
+    }, 300)
+  
     return () => clearTimeout(timeout)
   }, [search])
 
@@ -212,6 +207,12 @@ function Products() {
             onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
             className="w-full bg-white/5 border border-white/10 rounded-full px-5 pl-10 py-3 text-white text-sm outline-none focus:border-purple-400 transition-colors placeholder:text-white/20"
           />
+          {/* spinner inside search bar */}
+          {searchLoading && (
+            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+              <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
 
           {showSuggestions && suggestions.length > 0 && (
             <div className="absolute top-12 left-0 right-0 bg-[#111] border border-white/10 rounded-2xl overflow-hidden z-20">
@@ -291,48 +292,53 @@ function Products() {
 </div> */}
 
 {/* Product grid */}
-<div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
-      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredProducts.map((product, index) => (
-          <motion.div
-            key={product.id}
-            className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-400/50 transition-all cursor-pointer group"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: Math.min(index * 0.03, 0.3) }}
-            onClick={() => navigate(`/products/${product.id}`)}>
+<AnimatePresence mode="popLayout">
+<motion.div
+  className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+  layout>
+  {filteredProducts.map((product, index) => (
+    <motion.div
+      key={product.id}
+      layout
+      className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-400/50 transition-all cursor-pointer group"
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+      onClick={() => navigate(`/products/${product.id}`)}>
 
-            <div className="h-48 overflow-hidden bg-white/3 relative">
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
-                onError={(e) => {
-                  e.target.style.display = 'none'
-                  e.target.nextSibling.style.display = 'flex'
-                }}
-              />
-              <div className="absolute inset-0 items-center justify-center text-5xl hidden">
-                📦
-              </div>
-            </div>
-
-            <div className="p-4">
-              <p className="text-xs text-white/30 mb-1">{product.category}</p>
-              <h3 className="text-sm font-medium text-white mb-1">{product.name}</h3>
-              <p className="text-purple-400 text-sm mb-4">${product.price?.toLocaleString()}</p>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  handleAddToCart(product)
-                }}
-                className="w-full border border-white/10 hover:border-purple-400 hover:bg-purple-500/10 text-white/70 hover:text-white text-xs py-2 rounded-xl transition-all">
-                Add to cart
-              </button>
-            </div>
-          </motion.div>
-        ))}
+      <div className="h-48 overflow-hidden bg-white/3 relative">
+        <img
+          src={product.imageUrl}
+          alt={product.name}
+          className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
+          onError={(e) => {
+            e.target.style.display = 'none'
+            e.target.nextSibling.style.display = 'flex'
+          }}
+        />
+        <div className="absolute inset-0 items-center justify-center text-5xl hidden">
+          📦
+        </div>
       </div>
+
+      <div className="p-4">
+        <p className="text-xs text-white/30 mb-1">{product.category}</p>
+        <h3 className="text-sm font-medium text-white mb-1">{product.name}</h3>
+        <p className="text-purple-400 text-sm mb-4">${product.price?.toLocaleString()}</p>
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            handleAddToCart(product)
+          }}
+          className="w-full border border-white/10 hover:border-purple-400 hover:bg-purple-500/10 text-white/70 hover:text-white text-xs py-2 rounded-xl transition-all">
+          Add to cart
+        </button>
+      </div>
+    </motion.div>
+  ))}
+</motion.div>
+</AnimatePresence>
 
       {/* Empty state */}
       {filteredProducts.length === 0 && !initialLoading && (
