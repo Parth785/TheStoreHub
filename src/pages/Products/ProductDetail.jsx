@@ -185,7 +185,20 @@ function ModelViewer({ modelUrl }) {
     </Canvas>
   )
 }
-
+function ImageViewer({ imageUrl, name }) {
+  return (
+    <div className="w-full h-full flex items-center justify-center bg-white/3 p-8">
+      <img
+        src={imageUrl}
+        alt={name}
+        className="w-full h-full object-contain hover:scale-105 transition-transform duration-500"
+        onError={(e) => {
+          e.target.style.display = 'none'
+        }}
+      />
+    </div>
+  )
+}
 function EmojiViewer({ emoji }) {
   const [rotation, setRotation] = useState(0)
   const [isDragging, setIsDragging] = useState(false)

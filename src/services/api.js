@@ -30,9 +30,9 @@ export const authAPI = {
 }
 
 export const productAPI = {
-  getAll: () => api.get('/products'),
+  getAll: (page = 0, size = 20) => api.get(`/products?page=${page}&size=${size}`),
   getById: (id) => api.get(`/products/${id}`),
-  search: (name) => api.get(`/products/search?name=${name}`),
+  search: (query, page = 0, size = 20) => api.get(`/products/search?query=${query}&page=${page}&size=${size}`),
   getByCategory: (cat) => api.get(`/products/category/${cat}`),
 }
 
