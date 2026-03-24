@@ -23,6 +23,7 @@ api.interceptors.response.use(
   }
 )
 
+
 export const authAPI = {
   register: (data) => api.post('/users', data),
   login: (data) => api.post('/users/login', data),
@@ -33,7 +34,7 @@ export const productAPI = {
   getAll: (page = 0, size = 20) => api.get(`/products?page=${page}&size=${size}`),
   getById: (id) => api.get(`/products/${id}`),
   search: (query, page = 0, size = 20) => api.get(`/products/search?query=${query}&page=${page}&size=${size}`),
-  getByCategory: (cat) => api.get(`/products/category/${cat}`),
+  getByCategory: (category, page = 0, size = 10) => api.get(`/products/category/${category}?page=${page}&size=${size}`),
 }
 
 export const orderAPI = {
