@@ -6,20 +6,42 @@ import useCartStore from '../../store/useCartStore'
 import useAuthStore from '../../store/useAuthStore'
 
 const CATEGORIES = [
-  'Laptops', 'Smartphones', 'Tablets', 'Mobile Accessories',
-  'Laptop Accessories', 'Mens Watches', 'Womens Watches'
+  { name: 'Laptops', emoji: '💻' },
+  { name: 'Smartphones', emoji: '📱' },
+  { name: 'Tablets', emoji: '📟' },
+  { name: 'Mobile Accessories', emoji: '🔌' },
+  { name: 'Laptop Accessories', emoji: '🖱️' },
+  { name: 'Mens Watches', emoji: '⌚' },
+  { name: 'Womens Watches', emoji: '💍' },
 ]
 
-function CategoryRow({ category }) {
+// skeleton loader for cards
+function CardSkeleton() {
+  return (
+    <div className="min-w-[160px] max-w-[160px] bg-white/3 border border-white/5 rounded-2xl overflow-hidden flex-shrink-0 animate-pulse">
+      <div className="h-32 bg-white/5" />
+      <div className="p-3">
+        <div className="h-3 bg-white/5 rounded mb-2" />
+        <div className="h-3 bg-white/5 rounded w-2/3 mb-3" />
+        <div className="h-6 bg-white/5 rounded-xl" />
+      </div>
+    </div>
+  )
+}
+
+function CategoryRow({ category, emoji }) {
   const navigate = useNavigate()
   const { isLoggedIn } = useAuthStore()
   const addItem = useCartStore(state => state.addItem)
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [toast, setToast] = useState('')
   const scrollRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
 
   useEffect(() => {
-    productAPI.getByCategory(category, 0, 8)
+    productAPI.getByCategory(category, 0, 10)
       .then(res => {
         setProducts(res.data.content || [])
         setLoading(false)
@@ -27,13 +49,20 @@ function CategoryRow({ category }) {
       .catch(() => setLoading(false))
   }, [category])
 
+  const updateScrollButtons = () => {
+    if (!scrollRef.current) return
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+    setCanScrollLeft(scrollLeft > 0)
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+  }
+
   const scroll = (direction) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -300 : 300,
-        behavior: 'smooth'
-      })
-    }
+    if (!scrollRef.current) return
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -400 : 400,
+      behavior: 'smooth'
+    })
+    setTimeout(updateScrollButtons, 400)
   }
 
   const handleAddToCart = (e, product) => {
@@ -43,112 +72,145 @@ function CategoryRow({ category }) {
       return
     }
     addItem(product)
+    setToast(`${product.name} added`)
+    setTimeout(() => setToast(''), 2000)
   }
 
-  if (loading) {
-    return (
-      <div className="mb-12">
-        <div className="h-6 w-32 bg-white/5 rounded-lg mb-4 animate-pulse" />
-        <div className="flex gap-4">
-          {[1,2,3,4,5].map(i => (
-            <div key={i} className="min-w-[200px] h-64 bg-white/5 rounded-2xl animate-pulse" />
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  if (products.length === 0) return null
+  if (!loading && products.length === 0) return null
 
   return (
     <motion.div
-      className="mb-12"
-      initial={{ opacity: 0, y: 20 }}
+      className="mb-10"
+      initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}>
 
       {/* Category header */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-medium text-white">{category}</h2>
+      <div className="flex items-center justify-between mb-4 px-1">
+        <div className="flex items-center gap-2">
+          <span className="text-lg">{emoji}</span>
+          <h2 className="text-base font-medium text-white">{category}</h2>
+          {!loading && (
+            <span className="text-xs text-white/20 ml-1">
+              {products.length}+ items
+            </span>
+          )}
+        </div>
         <button
           onClick={() => navigate(`/products/category/${category}`)}
-          className="text-purple-400 text-sm hover:text-purple-300 transition-colors flex items-center gap-1">
-          See all →
+          className="flex items-center gap-1 text-xs text-white/40 hover:text-purple-400 transition-colors group">
+          See all
+          <span className="group-hover:translate-x-1 transition-transform">→</span>
         </button>
       </div>
 
-      {/* Horizontal scroll with arrows */}
-      <div className="relative group">
+      {/* Horizontal scroll container */}
+      <div className="relative">
 
-        {/* Left arrow */}
-        <button
-          onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-8 h-8 bg-black/80 border border-white/10 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:border-white/30 transition-all opacity-0 group-hover:opacity-100">
-          ←
-        </button>
+        {/* Left fade + arrow */}
+        {canScrollLeft && (
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-black to-transparent z-10 flex items-center">
+            <button
+              onClick={() => scroll('left')}
+              className="w-7 h-7 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full flex items-center justify-center text-white text-xs transition-all ml-1">
+              ←
+            </button>
+          </div>
+        )}
+
+        {/* Right fade + arrow */}
+        {canScrollRight && (
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end">
+            <button
+              onClick={() => scroll('right')}
+              className="w-7 h-7 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full flex items-center justify-center text-white text-xs transition-all mr-1">
+              →
+            </button>
+          </div>
+        )}
 
         {/* Scrollable row */}
         <div
           ref={scrollRef}
-          className="flex gap-4 overflow-x-auto scrollbar-hide pb-2"
+          onScroll={updateScrollButtons}
+          className="flex gap-3 overflow-x-auto pb-2"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="min-w-[200px] max-w-[200px] bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-400/50 transition-all cursor-pointer flex-shrink-0 group/card"
-              onClick={() => navigate(`/products/${product.id}`)}>
 
-              <div className="h-36 overflow-hidden bg-white/3 relative">
-                <img
-                  src={product.imageUrl}
-                  alt={product.name}
-                  className="w-full h-full object-contain p-3 group-hover/card:scale-110 transition-transform duration-500"
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'flex'
-                  }}
-                />
-                <div className="absolute inset-0 items-center justify-center text-4xl hidden">
-                  📦
+          {loading ? (
+            Array(6).fill(0).map((_, i) => <CardSkeleton key={i} />)
+          ) : (
+            <>
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="min-w-[160px] max-w-[160px] bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-400/40 transition-all cursor-pointer flex-shrink-0 group"
+                  onClick={() => navigate(`/products/${product.id}`)}>
+
+                  {/* Image */}
+                  <div className="h-32 overflow-hidden bg-white/3 relative">
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500"
+                      onError={(e) => {
+                        e.target.style.display = 'none'
+                        e.target.nextSibling.style.display = 'flex'
+                      }}
+                    />
+                    <div className="absolute inset-0 items-center justify-center text-3xl hidden">
+                      📦
+                    </div>
+                  </div>
+
+                  {/* Info */}
+                  <div className="p-3">
+                    <h3 className="text-xs font-medium text-white mb-1 truncate leading-tight">
+                      {product.name}
+                    </h3>
+                    <p className="text-purple-400 text-xs font-medium mb-2">
+                      ${product.price?.toLocaleString()}
+                    </p>
+                    <button
+                      onClick={(e) => handleAddToCart(e, product)}
+                      className="w-full border border-white/10 hover:border-purple-400 hover:bg-purple-500/10 text-white/50 hover:text-white text-xs py-1.5 rounded-xl transition-all">
+                      + Add
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ))}
 
-              <div className="p-3">
-                <h3 className="text-xs font-medium text-white mb-1 truncate">{product.name}</h3>
-                <p className="text-purple-400 text-xs mb-2">${product.price?.toLocaleString()}</p>
-                <button
-                  onClick={(e) => handleAddToCart(e, product)}
-                  className="w-full border border-white/10 hover:border-purple-400 hover:bg-purple-500/10 text-white/60 hover:text-white text-xs py-1.5 rounded-xl transition-all">
-                  Add to cart
-                </button>
+              {/* See all card */}
+              <div
+                className="min-w-[120px] max-w-[120px] border border-white/10 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-purple-400/50 hover:bg-purple-500/5 transition-all flex-shrink-0 gap-3 group"
+                onClick={() => navigate(`/products/category/${category}`)}>
+                <div className="w-8 h-8 rounded-full border border-white/10 group-hover:border-purple-400 flex items-center justify-center text-white/30 group-hover:text-purple-400 transition-all">
+                  →
+                </div>
+                <p className="text-xs text-white/30 group-hover:text-white/50 text-center transition-colors px-2">
+                  View all
+                </p>
               </div>
-            </div>
-          ))}
-
-          {/* See all card */}
-          <div
-            className="min-w-[120px] max-w-[120px] bg-white/3 border border-white/10 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-purple-400/50 transition-all flex-shrink-0 gap-2"
-            onClick={() => navigate(`/products/category/${category}`)}>
-            <span className="text-2xl">→</span>
-            <p className="text-xs text-white/40 text-center">See all {category}</p>
-          </div>
+            </>
+          )}
         </div>
-
-        {/* Right arrow */}
-        <button
-          onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-8 h-8 bg-black/80 border border-white/10 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:border-white/30 transition-all opacity-0 group-hover:opacity-100">
-          →
-        </button>
-
       </div>
+
+      {/* Per card toast */}
+      {toast && (
+        <motion.div
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-5 py-2.5 rounded-full text-xs font-medium z-50"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}>
+          {toast}
+        </motion.div>
+      )}
+
     </motion.div>
   )
 }
 
 function Explore() {
   const navigate = useNavigate()
-  const [categories, setCategories] = useState(CATEGORIES)
   const [search, setSearch] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchResults, setSearchResults] = useState([])
@@ -180,7 +242,8 @@ function Explore() {
   return (
     <div className="min-h-screen bg-black text-white pt-24 px-4 md:px-8 pb-16">
 
-      <div className="fixed top-[-100px] right-[-100px] w-[400px] h-[400px] bg-purple-700 rounded-full opacity-10 blur-3xl pointer-events-none" />
+      <div className="fixed top-[-100px] right-[-100px] w-[500px] h-[500px] bg-purple-700 rounded-full opacity-10 blur-3xl pointer-events-none" />
+      <div className="fixed bottom-[-100px] left-[-100px] w-[300px] h-[300px] bg-indigo-700 rounded-full opacity-10 blur-3xl pointer-events-none" />
 
       <div className="max-w-6xl mx-auto">
 
@@ -189,8 +252,12 @@ function Explore() {
           className="mb-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}>
-          <p className="text-xs tracking-[4px] text-white/30 uppercase mb-3">Discover</p>
-          <h1 className="text-4xl md:text-5xl font-medium">Explore</h1>
+          <p className="text-xs tracking-[4px] text-white/30 uppercase mb-2">
+            The Store Hub
+          </p>
+          <h1 className="text-4xl md:text-5xl font-medium">
+            What are you<br />looking for?
+          </h1>
         </motion.div>
 
         {/* Search bar */}
@@ -200,65 +267,87 @@ function Explore() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}>
           <div className="relative max-w-xl">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30">⌕</span>
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30 text-base">⌕</span>
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search laptops, phones, accessories..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-full px-5 pl-10 py-3 text-white text-sm outline-none focus:border-purple-400 transition-colors placeholder:text-white/20"
+              className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 pl-10 py-3.5 text-white text-sm outline-none focus:border-purple-400 transition-colors placeholder:text-white/20"
             />
             {searchLoading && (
               <div className="absolute right-4 top-1/2 -translate-y-1/2">
                 <div className="w-4 h-4 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
               </div>
             )}
+            {search && !searchLoading && (
+              <button
+                onClick={() => setSearch('')}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors text-sm">
+                ✕
+              </button>
+            )}
           </div>
         </motion.div>
 
         {/* Search results */}
         {showSearch ? (
-          <div>
-            <p className="text-sm text-white/40 mb-6">
-              {searchResults.length} results for "{search}"
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}>
+            <p className="text-sm text-white/30 mb-6">
+              {searchResults.length} results for
+              <span className="text-white ml-1">"{search}"</span>
             </p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {searchResults.map((product, index) => (
-                <motion.div
-                  key={product.id}
-                  className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-400/50 transition-all cursor-pointer group"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                  onClick={() => navigate(`/products/${product.id}`)}>
-                  <div className="h-48 overflow-hidden bg-white/3 relative">
-                    <img
-                      src={product.imageUrl}
-                      alt={product.name}
-                      className="w-full h-full object-contain p-4 group-hover:scale-110 transition-transform duration-500"
-                      onError={(e) => { e.target.style.display = 'none' }}
-                    />
-                  </div>
-                  <div className="p-4">
-                    <p className="text-xs text-white/30 mb-1">{product.category}</p>
-                    <h3 className="text-sm font-medium text-white mb-1">{product.name}</h3>
-                    <p className="text-purple-400 text-sm">${product.price?.toLocaleString()}</p>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-            {searchResults.length === 0 && !searchLoading && (
+            {searchResults.length === 0 && !searchLoading ? (
               <div className="text-center py-20 text-white/30">
                 <p className="text-4xl mb-4">⊘</p>
-                <p className="text-sm">No products found for "{search}"</p>
+                <p className="text-sm">No results for "{search}"</p>
+                <button
+                  onClick={() => setSearch('')}
+                  className="mt-4 text-purple-400 text-sm hover:text-purple-300 transition-colors">
+                  Clear search
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {searchResults.map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-400/50 transition-all cursor-pointer group"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: index * 0.03 }}
+                    onClick={() => navigate(`/products/${product.id}`)}>
+                    <div className="h-36 overflow-hidden bg-white/3">
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
+                        className="w-full h-full object-contain p-3 group-hover:scale-110 transition-transform duration-500"
+                        onError={(e) => { e.target.style.display = 'none' }}
+                      />
+                    </div>
+                    <div className="p-3">
+                      <p className="text-xs text-white/30 mb-1 truncate">{product.category}</p>
+                      <h3 className="text-xs font-medium text-white mb-1 truncate">{product.name}</h3>
+                      <p className="text-purple-400 text-xs">${product.price?.toLocaleString()}</p>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             )}
-          </div>
+          </motion.div>
         ) : (
           // Category rows
           <div>
-            {categories.map(category => (
-              <CategoryRow key={category} category={category} />
+            {CATEGORIES.map((cat, index) => (
+              <motion.div
+                key={cat.name}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}>
+                <CategoryRow category={cat.name} emoji={cat.emoji} />
+              </motion.div>
             ))}
           </div>
         )}

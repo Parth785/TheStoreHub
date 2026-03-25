@@ -12,6 +12,9 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+
+
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -35,6 +38,7 @@ export const productAPI = {
   getById: (id) => api.get(`/products/${id}`),
   search: (query, page = 0, size = 20) => api.get(`/products/search?query=${query}&page=${page}&size=${size}`),
   getByCategory: (category, page = 0, size = 10) => api.get(`/products/category/${category}?page=${page}&size=${size}`),
+  getCategories: () => api.get('/products/categories'),
 }
 
 export const orderAPI = {
