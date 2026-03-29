@@ -5,17 +5,31 @@ import { productAPI } from '../../services/api'
 import useCartStore from '../../store/useCartStore'
 import useAuthStore from '../../store/useAuthStore'
 
-const CATEGORIES = [
-  { name: 'Laptops', emoji: '💻' },
-  { name: 'Smartphones', emoji: '📱' },
-  { name: 'Tablets', emoji: '📟' },
-  { name: 'Mobile Accessories', emoji: '🔌' },
-  { name: 'Laptop Accessories', emoji: '🖱️' },
-  { name: 'Mens Watches', emoji: '⌚' },
-  { name: 'Womens Watches', emoji: '💍' },
-]
+function getCategoryEmoji(category) {
+  const map = {
+    'laptops': '💻',
+    'phones': '📱',
+    'smartphones': '📱',
+    'tablets': '📟',
+    'audio': '🎧',
+    'mobile-accessories': '🔌',
+    'laptop-accessories': '🖱️',
+    'mens-watches': '⌚',
+    'womens-watches': '💍',
+    'beauty': '💄',
+    'fragrances': '🌸',
+    'furniture': '🪑',
+    'groceries': '🛒',
+    'home-decoration': '🏠',
+    'kitchen-accessories': '🍳',
+    'mens-shirts': '👔',
+    'mens-shoes': '👟',
+    'books': '📚',
+    'collectibles': '🏆',
+  }
+  return map[category.toLowerCase()] || '📦'
+}
 
-// skeleton loader for cards
 function CardSkeleton() {
   return (
     <div className="min-w-[160px] max-w-[160px] bg-white/3 border border-white/5 rounded-2xl overflow-hidden flex-shrink-0 animate-pulse">
@@ -38,21 +52,32 @@ function CategoryRow({ category, emoji }) {
   const [toast, setToast] = useState('')
   const scrollRef = useRef(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+  const [totalProducts, setTotalProducts] = useState(0)
+
 
   useEffect(() => {
-    productAPI.getByCategory(category, 0, 10)
-      .then(res => {
-        setProducts(res.data.content || [])
-        setLoading(false)
-      })
-      .catch(() => setLoading(false))
-  }, [category])
+  productAPI.getByCategory(category, 0, 10)
+    .then(res => {
+      setProducts(res.data.content || [])
+      setTotalProducts(res.data.totalElements || 0)
+      setLoading(false)
+    })
+    .catch(() => setLoading(false))
+}, [category])
+
+  // check scroll state after products load
+  useEffect(() => {
+    if (!loading && scrollRef.current) {
+      const { scrollWidth, clientWidth } = scrollRef.current
+      setCanScrollRight(scrollWidth > clientWidth)
+    }
+  }, [loading, products])
 
   const updateScrollButtons = () => {
     if (!scrollRef.current) return
     const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
-    setCanScrollLeft(scrollLeft > 0)
+    setCanScrollLeft(scrollLeft > 10)
     setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
   }
 
@@ -104,10 +129,10 @@ function CategoryRow({ category, emoji }) {
         </button>
       </div>
 
-      {/* Horizontal scroll container */}
+      {/* Horizontal scroll */}
       <div className="relative">
 
-        {/* Left fade + arrow */}
+        {/* Left scroll arrow — only when scrolled right */}
         {canScrollLeft && (
           <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-black to-transparent z-10 flex items-center">
             <button
@@ -118,7 +143,7 @@ function CategoryRow({ category, emoji }) {
           </div>
         )}
 
-        {/* Right fade + arrow */}
+        {/* Right scroll arrow — only when more content exists */}
         {canScrollRight && (
           <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black to-transparent z-10 flex items-center justify-end">
             <button
@@ -129,7 +154,6 @@ function CategoryRow({ category, emoji }) {
           </div>
         )}
 
-        {/* Scrollable row */}
         <div
           ref={scrollRef}
           onScroll={updateScrollButtons}
@@ -146,7 +170,6 @@ function CategoryRow({ category, emoji }) {
                   className="min-w-[160px] max-w-[160px] bg-white/5 border border-white/10 rounded-2xl overflow-hidden hover:border-purple-400/40 transition-all cursor-pointer flex-shrink-0 group"
                   onClick={() => navigate(`/products/${product.id}`)}>
 
-                  {/* Image */}
                   <div className="h-32 overflow-hidden bg-white/3 relative">
                     <img
                       src={product.imageUrl}
@@ -162,7 +185,6 @@ function CategoryRow({ category, emoji }) {
                     </div>
                   </div>
 
-                  {/* Info */}
                   <div className="p-3">
                     <h3 className="text-xs font-medium text-white mb-1 truncate leading-tight">
                       {product.name}
@@ -179,23 +201,25 @@ function CategoryRow({ category, emoji }) {
                 </div>
               ))}
 
-              {/* See all card */}
-              <div
-                className="min-w-[120px] max-w-[120px] border border-white/10 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-purple-400/50 hover:bg-purple-500/5 transition-all flex-shrink-0 gap-3 group"
-                onClick={() => navigate(`/products/category/${category}`)}>
-                <div className="w-8 h-8 rounded-full border border-white/10 group-hover:border-purple-400 flex items-center justify-center text-white/30 group-hover:text-purple-400 transition-all">
-                  →
+              {/* View all card — only show if more than 5 products */}
+              {/* View all card — only show if there are MORE products than loaded */}
+              {totalProducts > products.length && (
+                <div
+                  className="min-w-[120px] max-w-[120px] border border-white/10 border-dashed rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-purple-400/50 hover:bg-purple-500/5 transition-all flex-shrink-0 gap-3 group"
+                  onClick={() => navigate(`/products/category/${category}`)}>
+                  <div className="w-8 h-8 rounded-full border border-white/10 group-hover:border-purple-400 flex items-center justify-center text-white/30 group-hover:text-purple-400 transition-all">
+                    →
+                  </div>
+                  <p className="text-xs text-white/30 group-hover:text-white/50 text-center transition-colors px-2">
+                    View all
+                  </p>
                 </div>
-                <p className="text-xs text-white/30 group-hover:text-white/50 text-center transition-colors px-2">
-                  View all
-                </p>
-              </div>
+              )}
             </>
           )}
         </div>
       </div>
 
-      {/* Per card toast */}
       {toast && (
         <motion.div
           className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-5 py-2.5 rounded-full text-xs font-medium z-50"
@@ -211,10 +235,21 @@ function CategoryRow({ category, emoji }) {
 
 function Explore() {
   const navigate = useNavigate()
+  const [categories, setCategories] = useState([])
+  const [categoriesLoading, setCategoriesLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchResults, setSearchResults] = useState([])
   const [showSearch, setShowSearch] = useState(false)
+
+  useEffect(() => {
+    productAPI.getCategories()
+      .then(res => {
+        setCategories(res.data)
+        setCategoriesLoading(false)
+      })
+      .catch(() => setCategoriesLoading(false))
+  }, [])
 
   useEffect(() => {
     if (!search.trim()) {
@@ -260,7 +295,7 @@ function Explore() {
           </h1>
         </motion.div>
 
-        {/* Search bar */}
+        {/* Search */}
         <motion.div
           className="mb-10"
           initial={{ opacity: 0 }}
@@ -292,9 +327,7 @@ function Explore() {
 
         {/* Search results */}
         {showSearch ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <p className="text-sm text-white/30 mb-6">
               {searchResults.length} results for
               <span className="text-white ml-1">"{search}"</span>
@@ -338,17 +371,32 @@ function Explore() {
             )}
           </motion.div>
         ) : (
-          // Category rows
           <div>
-            {CATEGORIES.map((cat, index) => (
-              <motion.div
-                key={cat.name}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}>
-                <CategoryRow category={cat.name} emoji={cat.emoji} />
-              </motion.div>
-            ))}
+            {categoriesLoading ? (
+              Array(4).fill(0).map((_, i) => (
+                <div key={i} className="mb-10">
+                  <div className="h-5 w-32 bg-white/5 rounded-lg mb-4 animate-pulse" />
+                  <div className="flex gap-3">
+                    {Array(6).fill(0).map((_, j) => (
+                      <div key={j} className="min-w-[160px] h-52 bg-white/5 rounded-2xl animate-pulse" />
+                    ))}
+                  </div>
+                </div>
+              ))
+            ) : (
+              categories.map((category, index) => (
+                <motion.div
+                  key={category}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}>
+                  <CategoryRow
+                    category={category}
+                    emoji={getCategoryEmoji(category)}
+                  />
+                </motion.div>
+              ))
+            )}
           </div>
         )}
 
