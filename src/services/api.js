@@ -47,5 +47,13 @@ export const orderAPI = {
   getById: (id) => api.get(`/orders/${id}`),
   updateStatus: (id, status) => api.put(`/orders/${id}/status?status=${status}`),
 }
+export const adminAPI = {
+  login: (data) => api.post('/admin/login', data),
+  getUserStats: () => api.get('/admin/stats/users'),
+  getOrderStats: () => api.get('/orders/admin/stats'),
+  getDailyRevenue: (days = 7) => api.get(`/orders/admin/revenue?days=${days}`),
+  getProductStats: () => api.get('/products/admin/stats'),
+  getAllOrders: (page = 0, size = 20) => api.get(`/orders/admin/all?page=${page}&size=${size}`),
+}
 
 export default api

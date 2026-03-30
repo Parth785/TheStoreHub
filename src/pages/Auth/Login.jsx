@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { authAPI } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
+import { jwtDecode } from "jwt-decode";
 
 // Toast component — animated popup from bottom
 function Toast({ message, type, visible }) {
@@ -53,55 +54,81 @@ function Login() {
   }
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault()
+  setLoading(true)
 
-    try {
-      if (isRegister) {
-        await authAPI.register({
-          name: form.name,
-          email: form.email,
-          password: form.password,
-        })
+  try {
+    if (isRegister) {
+      await authAPI.register({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      })
 
-        showToast('Account created! Signing you in...')
-        setLoading(false)
-
-        setTimeout(async () => {
-          try {
-            const res = await authAPI.login({
-              email: form.email,
-              password: form.password,
-            })
-            login(res.data)
-            showToast('Welcome to The Store Hub!')
-            setTimeout(() => navigate('/'), 1000)
-          } catch {
-            showToast('Registered! Please sign in.', 'success')
-            setIsRegister(false)
-          }
-        }, 1500)
-
-      } else {
-        const res = await authAPI.login({
-          email: form.email,
-          password: form.password,
-        })
-        login(res.data)
-        showToast('Welcome back!')
-        setLoading(false)
-        setTimeout(() => navigate('/'), 1000)
-      }
-
-    } catch (err) {
-      const data = err.response?.data
-      let message = 'Something went wrong'
-      if (typeof data === 'string') message = data
-      else if (data?.message) message = data.message
-      showToast(message, 'error')
+      showToast('Account created! Signing you in...')
       setLoading(false)
+
+      setTimeout(async () => {
+        try {
+          const res = await authAPI.login({
+            email: form.email,
+            password: form.password,
+          })
+
+          login(res.data)
+          console.log("LOGIN RESPONSE:", res.data)
+          // 🔥 Decode token
+          const decoded = jwtDecode(res.data)
+
+          showToast('Welcome to The Store Hub!')
+
+          setTimeout(() => {
+            if (decoded.role === 'ADMIN') {
+              navigate('/admin')
+            } else {
+              navigate('/')
+            }
+          }, 1000)
+
+        } catch {
+          showToast('Registered! Please sign in.', 'success')
+          setIsRegister(false)
+        }
+      }, 1500)
+
+    } else {
+      const res = await authAPI.login({
+        email: form.email,
+        password: form.password,
+      })
+      console.log("LOGIN RESPONSE:", res.data)
+      login(res.data)
+
+      // 🔥 Decode token
+      const decoded = jwtDecode(res.data)
+
+      showToast('Welcome back!')
+      setLoading(false)
+
+      setTimeout(() => {
+        if (decoded.role === 'ADMIN') {
+          navigate('/admin')
+        } else {
+          navigate('/')
+        }
+      }, 1000)
     }
+
+  } catch (err) {
+    console.log("err:",err)
+    const data = err.response?.data
+    let message = 'Something went wrong'
+    if (typeof data === 'string') message = data
+    else if (data?.message) message = data.message
+    showToast(message, 'error')
+    setLoading(false)
   }
+}
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center px-4">
