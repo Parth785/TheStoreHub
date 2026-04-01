@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import useCartStore from '../../store/useCartStore'
 import useAuthStore from '../../store/useAuthStore'
 import { orderAPI } from '../../services/api'
+import { useRazorpay } from '../../hooks/useRazorpay'
+import { authAPI } from '../../services/api'
 
 function Cart() {
   const navigate = useNavigate()
@@ -12,6 +14,9 @@ function Cart() {
 
   const [loading, setLoading] = useState(false)
   const [toast, setToast] = useState('')
+  const { initiatePayment } = useRazorpay()
+  const { user } = useAuthStore()
+
 
   const showToast = (msg) => {
     setToast(msg)
@@ -24,25 +29,42 @@ function Cart() {
       setTimeout(() => navigate('/login'), 1000)
       return
     }
-
+  
     setLoading(true)
     try {
+      // create order first
       const orderData = {
         items: items.map(item => ({
           productId: item.id,
           quantity: item.quantity
         }))
       }
-      await orderAPI.create(orderData)
-      showToast('Order placed successfully!')
-      // navigate first then clear cart
-      navigate('/orders')
-      clearCart()
+      const orderRes = await orderAPI.create(orderData)
+      const orderId = orderRes.data.orderId
+  
+      // fetch user details for prefill
+      const userRes = await authAPI.getProfile(user.id)
+  
+      // initiate Razorpay payment
+      initiatePayment(
+        orderId,
+        userRes.data,
+        (result) => {
+          // payment success
+          showToast('Payment successful! Order confirmed.')
+          navigate('/orders')
+          clearCart()
+          setLoading(false)
+        },
+        (error) => {
+          // payment failed or cancelled
+          showToast(error || 'Payment failed')
+          setLoading(false)
+        }
+      )
+  
     } catch (err) {
-      showToast('Order placed successfully!')
-      navigate('/orders')
-      clearCart()
-    } finally {
+      showToast('Something went wrong')
       setLoading(false)
     }
   }
@@ -207,7 +229,7 @@ function Cart() {
                 onClick={handleCheckout}
                 disabled={loading}
                 className="w-full bg-purple-500 hover:bg-purple-600 disabled:opacity-50 text-white py-4 rounded-2xl text-sm font-medium transition-all hover:scale-[1.02]">
-                {loading ? 'Placing order...' : 'Place order'}
+                {loading ? 'Processing...' : 'Pay now'}
               </button>
 
               <button

@@ -5,22 +5,6 @@ import { orderAPI, authAPI } from '../../services/api'
 import useAuthStore from '../../store/useAuthStore'
 import useCartStore from '../../store/useCartStore'
 
-const SAMPLE_USER = {
-  id: 1,
-  name: 'Parth Lakhani',
-  email: 'parth@example.com',
-  phone: '+91 98765 43210',
-  address: 'Ahmedabad, Gujarat, India',
-  role: 'USER',
-  createdAt: '2026-01-15T10:00:00',
-}
-
-const SAMPLE_ORDERS = [
-  { id: 1, status: 'DELIVERED', totalPrice: 2499, createdAt: '2026-03-10T10:30:00' },
-  { id: 2, status: 'SHIPPED', totalPrice: 1548, createdAt: '2026-03-14T14:20:00' },
-  { id: 3, status: 'PENDING', totalPrice: 349, createdAt: '2026-03-17T09:00:00' },
-]
-
 const STATUS_COLORS = {
   PENDING: 'text-yellow-400 bg-yellow-400/10 border-yellow-400/20',
   PROCESSING: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
@@ -33,23 +17,27 @@ function Profile() {
   const { isLoggedIn, logout, user } = useAuthStore()
   const { items } = useCartStore()
 
-  const [profile, setProfile] = useState(SAMPLE_USER)
-  const [orders, setOrders] = useState(SAMPLE_ORDERS)
-  const [loading, setLoading] = useState(false)
+  const [profile, setProfile] = useState(null)
+  const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('profile')
 
   useEffect(() => {
-    if (user?.id) {
-      authAPI.getProfile(user.id)
-        .then(res => {
-          setProfile(res.data)
-        })
-        .catch(() => setProfile(SAMPLE_USER))
-    }
-  
-    orderAPI.getMyOrders()
-      .then(res => setOrders(res.data))
-      .catch(() => setOrders(SAMPLE_ORDERS))
+    if (!user?.id) return
+
+    // fetch profile and orders in parallel
+    Promise.all([
+      authAPI.getProfile(user.id),
+      orderAPI.getMyOrders()
+    ])
+      .then(([profileRes, ordersRes]) => {
+        setProfile(profileRes.data)
+        setOrders(ordersRes.data || [])
+      })
+      .catch(err => {
+        console.error('Failed to fetch profile data:', err)
+      })
+      .finally(() => setLoading(false))
   }, [user])
 
   const handleLogout = () => {
@@ -58,6 +46,7 @@ function Profile() {
   }
 
   const formatDate = (dateStr) => {
+    if (!dateStr) return 'N/A'
     return new Date(dateStr).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -69,7 +58,31 @@ function Profile() {
     return name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'
   }
 
-  const totalSpent = orders.reduce((sum, o) => sum + o.totalPrice, 0)
+  const totalSpent = orders.reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white/30">
+        <div className="text-center">
+          <p className="text-4xl mb-4">👤</p>
+          <p className="text-sm">Failed to load profile</p>
+          <button
+            onClick={() => navigate('/')}
+            className="mt-4 text-purple-400 text-sm hover:text-purple-300 transition-colors">
+            Go home
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-black text-white pt-24 px-4 md:px-8 pb-16">
@@ -102,7 +115,14 @@ function Profile() {
 
           {/* Info */}
           <div className="flex-1">
-            <h2 className="text-xl font-medium text-white">{profile.name}</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-medium text-white">{profile.name}</h2>
+              {profile.role === 'ADMIN' && (
+                <span className="text-xs px-2 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-400">
+                  Admin
+                </span>
+              )}
+            </div>
             <p className="text-white/40 text-sm mt-1">{profile.email}</p>
             <p className="text-xs text-white/20 mt-1">
               Member since {formatDate(profile.createdAt)}
@@ -168,13 +188,12 @@ function Profile() {
             <h3 className="text-sm font-medium text-white/50 uppercase tracking-widest mb-4">
               Personal details
             </h3>
-            <div className="flex flex-col gap-0">
+            <div className="flex flex-col">
               {[
                 { label: 'Full name', value: profile.name },
                 { label: 'Email', value: profile.email },
-                { label: 'Phone', value: profile.phone },
-                { label: 'Address', value: profile.address },
-                { label: 'Account type', value: profile.role },
+                { label: 'Account type', value: profile.role || 'USER' },
+                { label: 'Member since', value: formatDate(profile.createdAt) },
               ].map((row, i) => (
                 <div
                   key={i}
@@ -194,25 +213,42 @@ function Profile() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}>
-            {orders.map((order, index) => (
-              <div
-                key={order.id}
-                onClick={() => navigate('/orders')}
-                className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:border-purple-400/30 transition-all">
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
-                    <span className="text-sm font-medium text-white">Order #{order.id}</span>
-                    <span className={`text-xs px-2 py-1 rounded-full border ${STATUS_COLORS[order.status]}`}>
-                      {order.status}
+
+            {orders.length === 0 ? (
+              <div className="text-center py-16 text-white/30">
+                <p className="text-4xl mb-3">📦</p>
+                <p className="text-sm">No orders yet</p>
+                <button
+                  onClick={() => navigate('/products')}
+                  className="mt-4 text-purple-400 text-sm hover:text-purple-300 transition-colors">
+                  Start shopping
+                </button>
+              </div>
+            ) : (
+              orders.map((order) => (
+                <div
+                  key={order.orderId}
+                  onClick={() => navigate('/orders')}
+                  className="bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center justify-between cursor-pointer hover:border-purple-400/30 transition-all">
+                  <div>
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-sm font-medium text-white">
+                        Order #{order.orderId}
+                      </span>
+                      <span className={`text-xs px-2 py-1 rounded-full border ${STATUS_COLORS[order.status] || ''}`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <span className="text-xs text-white/30">
+                      {formatDate(order.createdAt)}
                     </span>
                   </div>
-                  <span className="text-xs text-white/30">{formatDate(order.createdAt)}</span>
+                  <span className="text-purple-400 font-medium">
+                    ${order.totalPrice?.toLocaleString()}
+                  </span>
                 </div>
-                <span className="text-purple-400 font-medium">
-                  ${order.totalPrice.toLocaleString()}
-                </span>
-              </div>
-            ))}
+              ))
+            )}
           </motion.div>
         )}
 
