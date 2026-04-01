@@ -12,6 +12,8 @@ import Profile from './pages/Profile/Profile.jsx'
 // import Admin from './pages/Admin/Admin.jsx'
 import AdminLogin from './pages/Admin/AdminLogin.jsx'
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx'
+import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute/ProtectedRoute.jsx'
+
 
 function App() {
   return (
@@ -22,12 +24,30 @@ function App() {
         <Route path="/products" element={<Explore />} />
         <Route path="/products/:id" element={<ProductDetail />} />
         <Route path="/products/category/:category" element={<CategoryPage />} />
-        <Route path="/cart" element={<Cart />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/orders" element={<Orders />} />
-        <Route path="/profile" element={<Profile />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/cart" element={
+          <ProtectedRoute>
+            <Cart />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/orders" element={
+          <ProtectedRoute>
+            <Orders />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/admin" element={
+          <AdminRoute>
+            <AdminDashboard />
+          </AdminRoute>
+        } />
       </Routes>
     </div>
   )

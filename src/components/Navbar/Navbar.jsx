@@ -3,9 +3,10 @@ import useAuthStore from '../../store/useAuthStore'
 import useCartStore from '../../store/useCartStore'
 
 function Navbar() {
-  const { isLoggedIn, logout } = useAuthStore()
+  const { isLoggedIn, logout,user } = useAuthStore()
   const totalItems = useCartStore(state => state.getTotalItems())
   const navigate = useNavigate()
+
 
   const handleLogout = () => {
     logout()
@@ -39,7 +40,7 @@ function Navbar() {
           Cart ({totalItems})
         </Link>
 
-        {isLoggedIn && (
+        {isLoggedIn && user?.role === 'ADMIN' && (
           <Link to="/admin" className="text-sm text-white/60 hover:text-white transition-colors">
             Admin
           </Link>

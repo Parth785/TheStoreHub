@@ -11,7 +11,10 @@ const useAuthStore = create((set) => ({
       const token = localStorage.getItem('token')
       if (token) {
         const decoded = jwtDecode(token)
-        return { id: decoded.userId }
+        return {
+          id: decoded.userId,
+          role: decoded.role || 'USER'  // ← add role
+        }
       }
       return null
     } catch {
@@ -25,7 +28,10 @@ const useAuthStore = create((set) => ({
     set({
       token,
       isLoggedIn: true,
-      user: { id: decoded.userId }
+      user: {
+        id: decoded.userId,
+        role: decoded.role || 'USER'  // ← add role
+      }
     })
   },
 

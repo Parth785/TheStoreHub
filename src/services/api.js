@@ -54,6 +54,13 @@ export const adminAPI = {
   getDailyRevenue: (days = 7) => api.get(`/orders/admin/revenue?days=${days}`),
   getProductStats: () => api.get('/products/admin/stats'),
   getAllOrders: (page = 0, size = 20) => api.get(`/orders/admin/all?page=${page}&size=${size}`),
+  updateOrderStatus: (id, status) => api.put(`/orders/${id}/status?status=${status}`),
+  getAllProducts: (page = 0, size = 20) => api.get(`/products?page=${page}&size=${size}`),
+  createProduct: (data) => api.post('/products', data),
+  deleteProduct: (id) => api.delete(`/products/${id}`),
+  getAllUsers: () => api.get('/admin/users'),
+  updateProduct: (id, data) => api.put(`/products/${id}`, data),
+
 }
 
 export default api
