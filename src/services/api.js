@@ -67,4 +67,13 @@ export const paymentAPI = {
   processPayment: (orderId, data) => api.post(`/orders/${orderId}/payment`, data),
 }
 
+export const reviewAPI = {
+  create: (data) => api.post('/reviews', data),
+  getProductReviews: (productId) => api.get(`/reviews/product/${productId}`),
+  getProductSummary: (productId) => api.get(`/reviews/product/${productId}/summary`),
+  getUserReviews: () => api.get('/reviews/user'),
+  deleteReview: (id) => api.delete(`/reviews/${id}`),
+}
+
+
 export default api
