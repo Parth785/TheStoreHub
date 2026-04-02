@@ -13,6 +13,8 @@ import Profile from './pages/Profile/Profile.jsx'
 import AdminLogin from './pages/Admin/AdminLogin.jsx'
 import AdminDashboard from './pages/Admin/AdminDashboard.jsx'
 import { ProtectedRoute, AdminRoute } from './components/ProtectedRoute/ProtectedRoute.jsx'
+import Payment from './pages/Payment/Payment.jsx'
+
 
 
 function App() {
@@ -48,7 +50,15 @@ function App() {
             <AdminDashboard />
           </AdminRoute>
         } />
+
+        <Route path="/payment" element={
+          <ProtectedRoute>
+            <Payment />
+          </ProtectedRoute>
+        } />
       </Routes>
+
+     
     </div>
   )
 }

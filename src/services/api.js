@@ -64,8 +64,7 @@ export const adminAPI = {
 }
 
 export const paymentAPI = {
-  createPayment: (orderId) => api.post(`/orders/${orderId}/payment/create`),
-  verifyPayment: (orderId, data) => api.post(`/orders/${orderId}/payment/verify`, data),
+  processPayment: (orderId, data) => api.post(`/orders/${orderId}/payment`, data),
 }
 
 export default api
