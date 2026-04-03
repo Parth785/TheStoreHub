@@ -125,7 +125,7 @@ function Payment() {
                 Secure Payment
               </p>
               <h1 className="text-3xl font-medium">
-                arc<span className="text-purple-400">.</span>store
+                Store<span className="text-purple-400">Hub</span>
               </h1>
               <p className="text-white/30 text-sm mt-2">
                 Order #{orderId} · ${amount?.toLocaleString()}
